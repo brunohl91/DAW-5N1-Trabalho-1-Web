@@ -78,7 +78,6 @@ public class ServletTarifa extends HttpServlet {
                 dao.setMensagem("Erro ao converter o ID da Operadora");
             }
             dao.getObjetoSelecionado().setId(id);
-            dao.getObjetoSelecionado().setCusto(Double.parseDouble(request.getParameter("custo")));
             try {
                 Calendar dataFimVigencia = Calendar.getInstance();
                 Calendar dataIniVigencia = Calendar.getInstance();
@@ -87,11 +86,12 @@ public class ServletTarifa extends HttpServlet {
                 dataIniVigencia.setTime(sdf.parse(request.getParameter("dataIniVigencia")));
                 dao.getObjetoSelecionado().setFimVigencia(dataFimVigencia);
                 dao.getObjetoSelecionado().setInicioVigencia(dataIniVigencia);
+                dao.getObjetoSelecionado().setCusto(Double.parseDouble(request.getParameter("custo")));
+                dao.getObjetoSelecionado().setRegraTarifacao(Integer.parseInt(request.getParameter("regra")));
             } catch (Exception e) {
-                dao.setMensagem("Erro ao converter uma das datas");
+                dao.setMensagem("Erro ao converter dados!");
             }
             dao.getObjetoSelecionado().setOperadora(daoOperadora.localizar(idOperadora));
-            dao.getObjetoSelecionado().setRegraTarifacao(Integer.parseInt(request.getParameter("regra")));
             if (dao.validaObjeto(dao.getObjetoSelecionado())) {
                 dao.salvar(dao.getObjetoSelecionado());
                 tela = "listar.jsp";
