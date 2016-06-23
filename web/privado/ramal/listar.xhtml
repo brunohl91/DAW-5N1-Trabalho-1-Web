@@ -1,0 +1,110 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:h="http://xmlns.jcp.org/jsf/html"
+  xmlns:f="http://xmlns.jcp.org/jsf/core"
+  xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+  xmlns:p="http://primefaces.org/ui">
+
+  <ui:composition template="/templates/template.xhtml">
+    <ui:define name="titulo">Controle de Ramais</ui:define>
+    <ui:define name="conteudo">
+      <h:form id="formListagem">
+        <p:messages/>
+        <p:growl id="growl"/>
+        <p:commandButton value="Novo" actionListener="#{controleRamal.novo()}"
+         oncomplete="PF('dlg').show();" update=":formEdicao"/>
+         <div align="center">
+          <p:panelGrid columns="11">
+            <p:outputLabel value="Ordem:"/>
+            <p:selectOneMenu value="#{controleRamal.dao.ordem}">
+              <f:selectItem itemLabel="ID" itemValue="id"/>
+              <f:selectItem itemLabel="Número" itemValue="numero"/>
+              <p:ajax update="listagem growl"/>
+            </p:selectOneMenu>
+            <p:outputLabel value="Filtro"/>
+            <p:inputText value="#{controleRamal.dao.filter}">
+              <p:ajax event="keyup" update="listagem growl"/>
+            </p:inputText>
+            <p:commandButton value="Filtrar" update="listagem growl"/>
+            <p:outputLabel value="Máximo de Objetos:"/>
+            <p:inputText value="#{controleRamal.dao.maximoObjetos}">
+              <p:ajax event="keyup" update="listagem"/>
+            </p:inputText>
+            <p:commandButton value="Primeiro" actionListener="#{controleRamal.dao.primeiro()}" update="listagem" />
+            <p:commandButton value="Anterior" actionListener="#{controleRamal.dao.anterior()}" update="listagem" />
+            <p:commandButton value="Proximo" actionListener="#{controleRamal.dao.proximo()}" update="listagem" />
+            <p:commandButton value="Último" actionListener="#{controleRamal.dao.ultimo()}" update="listagem" />
+          </p:panelGrid>
+        </div>
+        <p:dataTable value="#{controleRamal.dao.listaObjetos}" var="obj" id="listagem">
+          <f:facet name="footer">
+            <p:outputLabel value="#{controleRamal.dao.mensagemNavegacao}"/>
+          </f:facet>
+          <p:column headerText="ID">
+            <h:outputText value="#{obj.id}"/>
+          </p:column>
+
+
+          <p:column headerText="Data Inicial">
+            <h:outputText value="#{obj.dataInicial}">
+              <f:converter converterId="converterCalendar" />
+            </h:outputText>
+          </p:column>
+          <p:column headerText="Data Final">
+            <h:outputText value="#{obj.dataFinal}">
+              <f:converter converterId="converterCalendar" />
+            </h:outputText>
+          </p:column>
+          <p:column headerText="Descrição">
+            <h:outputText value="#{obj.descricao}"/>
+          </p:column>
+          <p:column headerText="Número">
+            <h:outputText value="#{obj.numero}"/>
+          </p:column>
+          <p:column headerText="Ações">
+            <div align="center">
+              <p:commandButton actionListener="#{controleRamal.editar(obj.id)}" icon="ui-icon-pencil" id="btnEditar"
+               oncomplete="PF('dlg').show();" update=":formEdicao"/>
+               <p:commandButton actionListener="#{controleRamal.remover(obj.id)}" icon="ui-icon-trash" id="btnExcluir"
+                 onclick="if(!confirm('Confirma a exclusão')) return false" update="@form" process="@form" />
+                 <p:tooltip for="btnEditar" value="Editar" />
+                 <p:tooltip for="btnExcluir" value="Excluir" />
+               </div>
+             </p:column>
+           </p:dataTable>
+         </h:form>
+       </ui:define>
+       <ui:define name="dialogos">
+        <p:dialog widgetVar="dlg" header="Edição" modal="true" resizable="false">
+          <h:form id="formEdicao">
+            <p:growl/>
+            <div align="center">
+              <p:panelGrid columns="2">
+                <f:facet name="footer">
+                  <p:commandButton value="Salvar" actionListener="#{controleRamal.salvar()}" 
+                   oncomplete="if(!args.validationFailed){PF('dlg').hide();}" update=":formEdicao :formListagem"/>
+                 </f:facet>
+                 <p:outputLabel value="ID"/>
+                 <p:inputText value="#{controleRamal.objeto.id}" readonly="true"/>
+                 <p:outputLabel value="Número" for="txtNumero"/>
+                 <p:inputText value="#{controleRamal.objeto.numero}" id="txtNumero" size="6" maxlength="6" placeholder="Obrigatório"/>
+                 <p:outputLabel value="Descrição" for="txtDescricao"/>
+                 <p:inputText value="#{controleRamal.objeto.descricao}" id="txtDescricao" size="100" maxlength="100" placeholder="Obrigatório"/>
+                 <p:outputLabel value="Vigência Inicial" for="txtVigenciaInicial" />
+                 <p:calendar id="txtVigenciaInicial" value="#{controleRamal.objeto.dataInicial}" pattern="dd/MM/yyyy" mask="true" locale="pt_BR" navigator="true">
+                  <f:converter converterId="converterCalendar" />
+                </p:calendar>
+                <p:outputLabel value="Vigência Final" for="txtVigenciaFinal" />
+                <p:calendar id="txtVigenciaFinal" value="#{controleRamal.objeto.dataFinal}" pattern="dd/MM/yyyy" mask="true" locale="pt_BR" navigator="true">
+                  <f:converter converterId="converterCalendar" />
+                </p:calendar>
+              </p:panelGrid>
+            </div>
+          </h:form>
+          <ui:include src="/templates/ajaxstatus.xhtml"/>
+        </p:dialog>
+      </ui:define>
+    </ui:composition>
+
+  </html>

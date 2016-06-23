@@ -1,0 +1,129 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui">
+    
+    <ui:composition template="/templates/template.xhtml">
+        <ui:define name="titulo">Controle de Tarifas</ui:define>
+        <ui:define name="conteudo">
+            <h:form id="formListagem">
+                <p:messages/>
+                <p:growl id="growl"/>
+                <p:commandButton value="Tarifas Cadastradas" actionListener="#{controleTarifa.relatorioTarifas()}"
+                 onclick="this.form.target='_blank'" ajax="false"/>
+                <p:commandButton value="Novo" actionListener="#{controleTarifa.novo()}"
+                                 oncomplete="PF('dlg').show();" update=":formEdicao"/>
+                <div align="center">
+                    <p:panelGrid columns="11">
+                        <p:outputLabel value="Ordem:"/>
+                        <p:selectOneMenu value="#{controleTarifa.dao.ordem}">
+                            <f:selectItem itemLabel="ID" itemValue="id"/>
+                            <f:selectItem itemLabel="Início" itemValue="inicioVigencia"/>
+                            <f:selectItem itemLabel="Fim" itemValue="fimVigencia"/>
+                            <f:selectItem itemLabel="Custo" itemValue="custo"/>
+                            <f:selectItem itemLabel="Regra" itemValue="regraTarifacao"/>
+                            <f:selectItem itemLabel="Operadora" itemValue="operadora.nome"/>
+                            <p:ajax update="listagem growl"/>
+                        </p:selectOneMenu>
+                        <p:outputLabel value="Filtro"/>
+                        <p:inputText value="#{controleTarifa.dao.filter}">
+                            <p:ajax event="keyup" update="listagem growl"/>
+                        </p:inputText>
+                        <p:commandButton value="Filtrar" update="listagem growl"/>
+                        <p:outputLabel value="Máximo de Objetos:"/>
+                        <p:inputText value="#{controleTarifa.dao.maximoObjetos}">
+                            <p:ajax event="keyup" update="listagem"/>
+                        </p:inputText>
+                        <p:commandButton value="Primeiro" actionListener="#{controleTarifa.dao.primeiro()}" update="listagem" />
+                        <p:commandButton value="Anterior" actionListener="#{controleTarifa.dao.anterior()}" update="listagem" />
+                        <p:commandButton value="Proximo" actionListener="#{controleTarifa.dao.proximo()}" update="listagem" />
+                        <p:commandButton value="Último" actionListener="#{controleTarifa.dao.ultimo()}" update="listagem" />
+                    </p:panelGrid>
+                </div>
+                <p:dataTable value="#{controleTarifa.dao.listaObjetos}" var="obj" id="listagem">
+                    <f:facet name="footer">
+                        <p:outputLabel value="#{controleTarifa.dao.mensagemNavegacao}"/>
+                    </f:facet>
+                    <p:column headerText="ID">
+                        <p:outputLabel value="#{obj.id}"/>
+                    </p:column>
+                    <p:column headerText="Descrição">
+                        <p:outputLabel value="#{obj.descricao}"/>
+                    </p:column>
+                    <p:column headerText="Início Vigência">
+                        <p:outputLabel value="#{obj.inicioVigencia}">
+                            <f:converter converterId="converterCalendar"/>
+                        </p:outputLabel>
+                    </p:column>
+                    <p:column headerText="Fim Vigência">
+                        <p:outputLabel value="#{obj.fimVigencia}">
+                            <f:converter converterId="converterCalendar"/>
+                        </p:outputLabel>
+                    </p:column>
+                    <p:column headerText="Custo">
+                        <p:outputLabel value="#{obj.custo}"/>
+                    </p:column>
+                    <p:column headerText="Regra de Tarifação">
+                        <p:outputLabel value="#{obj.regraTarifacao}"/>
+                    </p:column>
+                    <p:column headerText="Operadora">
+                        <p:outputLabel value="#{obj.operadora.nome}"/>
+                    </p:column>
+                    <p:column headerText="Ações">
+                        <div align="center">
+                            <p:commandButton actionListener="#{controleTarifa.editar(obj.id)}" icon="ui-icon-pencil" id="btnEditar"
+                                           oncomplete="PF('dlg').show();" update=":formEdicao"/>
+                            <p:commandButton actionListener="#{controleTarifa.remover(obj.id)}" icon="ui-icon-trash" id="btnExcluir"
+                                           onclick="if(!confirm('Confirma a exclusão')) return false" update="@form" process="@form" />
+                            <p:tooltip for="btnEditar" value="Editar" />
+                            <p:tooltip for="btnExcluir" value="Excluir" />
+                        </div>
+                    </p:column>
+                </p:dataTable>
+            </h:form>
+        </ui:define>
+        <ui:define name="dialogos">
+            <p:dialog widgetVar="dlg" header="Edição" modal="true" resizable="false">
+                <h:form id="formEdicao">
+                    <p:growl/>
+                    <div align="center">
+                        <p:panelGrid columns="2">
+                            <f:facet name="footer">
+                                <p:commandButton value="Salvar" actionListener="#{controleTarifa.salvar()}" 
+                                                 oncomplete="if(!args.validationFailed){PF('dlg').hide();}" update=":formEdicao :formListagem"/>
+                            </f:facet>
+                            <p:outputLabel value="ID"/>
+                            <p:inputText value="#{controleTarifa.objeto.id}" readonly="true"/>
+                            <p:outputLabel value="Descrição" for="txtDescricao"/>
+                            <p:inputText value="#{controleTarifa.objeto.descricao}" id="txtDescricao"/>
+                            <p:outputLabel value="Início Vigência" for="txtInicioVigencia"/>
+                            <p:inputText value="#{controleTarifa.objeto.inicioVigencia}" id="txtInicioVigencia">
+                                <f:converter converterId="converterCalendar"/>
+                            </p:inputText>
+                            <p:outputLabel value="Fim Vigência" for="txtFimVigencia"/>
+                            <p:inputText value="#{controleTarifa.objeto.fimVigencia}" id="txtFimVigencia">
+                                <f:converter converterId="converterCalendar"/>
+                            </p:inputText>
+                            <p:outputLabel value="Custo" for="txtCusto"/>
+                            <p:inputText value="#{controleTarifa.objeto.custo}" id="txtCusto" placeholder="Obrigatório"/>
+                            <p:outputLabel value="Regra de Tarifação" for="txtRegra"/>
+                            <p:inputText value="#{controleTarifa.objeto.regraTarifacao}" id="txtRegra" placeholder="Obrigatório"/>
+                            <p:outputLabel value="Operadora" for="selectOperadora"/>
+                            <p:selectOneMenu id="selectOperadora" value="#{controleTarifa.objeto.operadora}">
+                                <f:converter converterId="converterOperadora" />
+                                <f:selectItem itemLabel="Selecione um registro" noSelectionOption="true" />
+                                <f:selectItems value="#{controleTarifa.daoOperadora.listaTodos}" var="e" itemLabel="#{e.nome}" />
+                            </p:selectOneMenu>
+                        </p:panelGrid>
+                    </div>
+                </h:form>
+                <ui:include src="/templates/ajaxstatus.xhtml"/>
+            </p:dialog>
+        </ui:define>
+    </ui:composition>
+    
+</html>
+

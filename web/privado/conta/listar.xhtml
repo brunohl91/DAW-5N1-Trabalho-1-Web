@@ -1,0 +1,325 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:h="http://xmlns.jcp.org/jsf/html"
+  xmlns:f="http://xmlns.jcp.org/jsf/core"
+  xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+  xmlns:p="http://primefaces.org/ui">
+
+  <!--
+    O que está faltando
+    - Listagem de ligações
+    - Manutenção de ligações
+    - Valor total da conta automático
+    -->
+
+<ui:composition template="/templates/template.xhtml">
+<ui:define name="titulo">Controle de Contas</ui:define>
+<ui:define name="conteudo">
+  <h:form id="formListagem">
+    <p:messages/>
+    <p:growl id="growl"/>
+    <p:commandButton value="Novo" actionListener="#{controleConta.novo()}"
+     oncomplete="PF('dlg').show();" update=":formEdicao"/>
+     <div align="center">
+      <p:panelGrid columns="11">
+        <p:outputLabel value="Ordem:"/>
+        <p:selectOneMenu value="#{controleConta.dao.ordem}">
+          <f:selectItem itemLabel="ID" itemValue="id"/>
+          <f:selectItem itemLabel="Operadora" itemValue="operadora.nome"/>
+          <p:ajax update="listagem growl"/>
+        </p:selectOneMenu>
+        <p:outputLabel value="Filtro"/>
+        <p:inputText value="#{controleConta.dao.filter}">
+          <p:ajax event="keyup" update="listagem growl"/>
+        </p:inputText>
+        <p:commandButton value="Filtrar" update="listagem growl"/>
+        <p:outputLabel value="Máximo de Objetos:"/>
+        <p:inputText value="#{controleConta.dao.maximoObjetos}">
+          <p:ajax event="keyup" update="listagem"/>
+        </p:inputText>
+        <p:commandButton value="Primeiro" actionListener="#{controleConta.dao.primeiro()}" update="listagem" />
+        <p:commandButton value="Anterior" actionListener="#{controleConta.dao.anterior()}" update="listagem" />
+        <p:commandButton value="Proximo" actionListener="#{controleConta.dao.proximo()}" update="listagem" />
+        <p:commandButton value="Último" actionListener="#{controleConta.dao.ultimo()}" update="listagem" />
+      </p:panelGrid>
+    </div>
+    <p:dataTable value="#{controleConta.dao.listaObjetos}" var="obj" id="listagem">
+      <f:facet name="footer">
+        <p:outputLabel value="#{controleConta.dao.mensagemNavegacao}"/>
+      </f:facet>
+      <p:column headerText="ID" class="xs-col">
+        <h:outputText value="#{obj.id}"/>
+      </p:column>
+      <p:column headerText="Descrição" class="lg-col">
+        <h:outputText value="#{obj.descricao}"/>
+      </p:column>
+      <p:column headerText="Operadora" class="sm-col">
+        <h:outputText value="#{obj.operadora.nome}" />
+      </p:column>
+      <p:column headerText="Vencimento"  class="sm-col">
+        <h:outputText value="#{obj.dataVencimento}">
+          <f:converter converterId="converterCalendar" />
+        </h:outputText>
+      </p:column>
+      <p:column headerText="Custo Total" class="sm-col">
+        <h:outputText value="#{obj.custoTotal}">
+          <f:convertNumber pattern="R$ 0.00" />
+        </h:outputText>
+      </p:column>
+      <p:column headerText="Ações" class="sm-col">
+        <div align="center">
+          <p:commandButton action="#{controleConta.relatorioConta(obj.id)}"
+           value="Relatório Conta" ajax="false"
+           onclick="this.form.target='_blank';"/> 
+           <p:commandButton actionListener="#{controleConta.editar(obj.id)}" icon="ui-icon-pencil" id="btnEditar"
+             oncomplete="PF('dlg').show();" update=":formEdicao"/>
+             <p:commandButton actionListener="#{controleConta.remover(obj.id)}" icon="ui-icon-trash" id="btnExcluir"
+               onclick="if(!confirm('Confirma a exclusão')) return false" update="@form" process="@form" />
+               <p:tooltip for="btnEditar" value="Editar" />
+               <p:tooltip for="btnExcluir" value="Excluir" />
+             </div>
+           </p:column>
+         </p:dataTable>
+       </h:form>
+     </ui:define>
+     <ui:define name="dialogos">
+      <p:dialog widgetVar="dlg" header="Edição" modal="true" resizable="false" width="800" height="400">
+        <h:form id="formEdicao">
+          <p:growl/>
+          <!-- Início das tabs -->
+          <p:tabView id="tab">
+            <!-- Tab Geral -->
+            <p:tab title="Dados Principais">
+              <div align="center">
+                <p:panelGrid columns="2">
+                  <f:facet name="footer">
+                    <p:commandButton value="Salvar" actionListener="#{controleConta.salvar()}" 
+                     oncomplete="if(!args.validationFailed){PF('dlg').hide();}" update=":formEdicao :formListagem"/>
+                   </f:facet>
+                   <p:outputLabel value="ID"/>
+                   <p:inputText value="#{controleConta.objeto.id}" readonly="true"/>
+                   <p:outputLabel value="Descrição"/>
+                   <p:inputText value="#{controleConta.objeto.descricao}" size="100" maxlength="100" placeholder="Obrigatório"/>
+                   <p:outputLabel value="Data Inicial Período" for="txtDataIniPeriodo" />
+                   <p:calendar id="txtDataIniPeriodo" value="#{controleConta.objeto.dataIniPeriodo}" pattern="dd/MM/yyyy" mask="true" locale="pt_BR" navigator="true">
+                    <f:converter converterId="converterCalendar" />
+                  </p:calendar>
+                  <p:outputLabel value="Data Final Período" for="txtDataFimPeriodo" />
+                  <p:calendar id="txtDataFimPeriodo" value="#{controleConta.objeto.dataFimPeriodo}" pattern="dd/MM/yyyy" mask="true" locale="pt_BR" navigator="true">
+                    <f:converter converterId="converterCalendar" />
+                  </p:calendar>
+                  <p:outputLabel value="Data Vencimento" for="txtDataVencimento" />
+                  <p:calendar id="txtDataVencimento" value="#{controleConta.objeto.dataVencimento}" pattern="dd/MM/yyyy" mask="true" locale="pt_BR" navigator="true">
+                    <f:converter converterId="converterCalendar" />
+                  </p:calendar>
+                  <p:outputLabel value="Custo Total" for="txtTotal" />
+                  <p:inputText id="txtTotal" value="#{controleConta.objeto.custoTotal}" size="12" maxlength="12" placeholder="Obrigatório" />
+                  <p:outputLabel value="Conta" for="selectOperadora"/>
+                  <p:selectOneMenu id="selectOperadora" value="#{controleConta.objeto.operadora}">
+                    <f:converter converterId="converterOperadora" />
+                    <f:selectItem itemLabel="Selecione um registro" noSelectionOption="true" />
+                    <f:selectItems value="#{controleConta.daoOperadora.listaTodos}" var="u" itemLabel="#{u.nome}" />
+                  </p:selectOneMenu>
+                </p:panelGrid>
+              </div>
+            </p:tab>
+            <!-- /Tab Geral -->
+            <!-- Tab Serviços da Conta -->
+            <p:tab title="Serviços da Conta">
+              <p:dataTable value="#{controleConta.objeto.servicos}"
+               var="servicoConta" rowIndexVar="idx" id="listaServicos">
+               <f:facet name="header">
+                <div align="center">
+                  <p:commandButton value="Novo Serviço" actionListener="#{controleConta.novoServico()}" update=":formServico" 
+                   icon="ui-icon-plus" id="btnNovoServico" process="btnNovoServico" oncomplete="PF('dlgServico').show();" />
+                 </div>
+               </f:facet>
+               <p:column headerText="ID" class="xs-col">
+                <p:outputLabel value="#{servicoConta.id}" />
+              </p:column>
+              <p:column headerText="Descrição">
+                <p:outputLabel value="#{servicoConta.descricao}" />
+              </p:column>
+              <p:column headerText="Data" class="sm-col">
+                <p:outputLabel value="#{servicoConta.data}">
+                  <f:converter converterId="converterCalendar" />
+                </p:outputLabel>
+              </p:column>
+              <p:column headerText="Quantidade" class="sm-col">
+                <p:outputLabel value="#{servicoConta.quantidade}" />
+              </p:column>
+              <p:column headerText="Custo Real" class="sm-col">
+                <p:outputLabel value="#{servicoConta.custoReal}">
+                  <f:convertNumber pattern="R$ 0.00"/>
+                </p:outputLabel>
+              </p:column>
+              <p:column headerText="Ações" class="sm-col">
+                <div align="center">
+                  <p:commandButton id="btnAlterarServico" icon="ui-icon-pencil"
+                   actionListener="#{controleConta.alterarServico(idx)}"
+                   update=":formServico" process="btnAlterarServico"
+                   oncomplete="PF('dlgServico').show();" />
+                   <p:commandButton id="btnRemoverServico" icon="ui-icon-trash"
+                     actionListener="#{controleConta.removerServico(idx)}"
+                     update=":formListagem:growl listaServicos :formEdicao:tab:txtTotal"
+                     process="@form" />
+                   </div>
+                 </p:column>
+               </p:dataTable>
+             </p:tab>
+             <!-- /Tab Serviços da Conta -->
+             <!-- Tab Ligações da Conta -->
+             <p:tab title="Ligações da Conta">
+              <p:dataTable value="#{controleConta.objeto.ligacoes}"
+               var="ligacaoConta" rowIndexVar="idx" id="listaLigacoes">
+               <f:facet name="header">
+                <div align="center">
+                  <p:commandButton value="Nova Ligação" actionListener="#{controleConta.novaLigacao()}" update=":formLigacao" 
+                   icon="ui-icon-plus" id="btnNovaLigacao" process="btnNovaLigacao" oncomplete="PF('dlgLigacao').show();" />
+                 </div>
+               </f:facet>
+               <p:column headerText="ID" class="xs-col">
+                <p:outputLabel value="#{ligacaoConta.id}" />
+              </p:column>
+              <p:column headerText="Data" class="sm-col">
+                <p:outputLabel value="#{ligacaoConta.data}">
+                  <f:converter converterId="converterCalendar" />
+                </p:outputLabel>
+              </p:column>
+              <p:column headerText="Duração(s)" class="sm-col">
+                <p:outputLabel value="#{ligacaoConta.duracao}" />
+              </p:column>
+              <p:column headerText="Número">
+                <p:outputLabel value="#{ligacaoConta.discado}" />
+              </p:column>
+              <p:column headerText="Custo" class="sm-col">
+                <p:outputLabel value="#{ligacaoConta.custo}" >
+                  <f:convertNumber pattern="R$ 0.00"/>
+                </p:outputLabel>
+              </p:column>
+              <p:column headerText="Ações" class="sm-col">
+                <div align="center">
+                  <p:commandButton id="btnAlterarligacao" icon="ui-icon-pencil"
+                   actionListener="#{controleConta.alterarLigacao(idx)}"
+                   update=":formLigacao" process="btnAlterarligacao"
+                   oncomplete="PF('dlgLigacao').show();" />
+                   <p:commandButton id="btnRemoverligacao" icon="ui-icon-trash"
+                     actionListener="#{controleConta.removerLigacao(idx)}"
+                     update=":formListagem:growl listaLigacoes :formEdicao:tab:txtTotal"
+                     process="@form" />
+                   </div>
+                 </p:column>
+               </p:dataTable>
+             </p:tab>
+             <!-- /Tab Ligações da Conta -->
+           </p:tabView>
+           <!-- /Fim das tabs -->
+         </h:form>
+         <ui:include src="/templates/ajaxstatus.xhtml"/>
+       </p:dialog>
+
+       <!-- Diálogo de cadastro e edição de serviços -->
+       <p:dialog widgetVar="dlgServico" header="Edição de Serviço da Conta" modal="true" resizable="false">
+        <h:form id="formServico">
+          <p:growl />
+          <p:panelGrid columns="2">
+            <f:facet name="footer">
+              <div align="center">
+                <p:commandButton id="adicionarServico" value="Salvar" icon="ui-icon-disk"
+                 actionListener="#{controleConta.salvarServico()}"
+                 update=":formEdicao:tab:listaServicos :formServico :formEdicao:tab:txtTotal"
+                 process="@form" oncomplete="if (!args.validationFailed){PF('dlgServico').hide();}"/>
+               </div>
+             </f:facet>
+             <p:outputLabel value="ID"/>
+             <p:inputText value="#{controleConta.servico.id}" size="10" readonly="true"/>
+             <p:outputLabel value="Descricao" for="txtDescricao"/>
+             <p:inputText id="txtDescricao" value="#{controleConta.servico.descricao}" size="140" maxlength="140" />
+             <p:outputLabel value="Data" for="txtData"/>
+             <p:calendar id="txtData" value="#{controleConta.servico.data}" pattern="dd/MM/yyyy" mask="true" locale="pt_BR" navigator="true">
+              <f:converter converterId="converterCalendar" />
+            </p:calendar>
+            <p:outputLabel value="Quantidade" for="txtQuantidade"/>
+            <p:inputText id="txtQuantidade" value="#{controleConta.servico.quantidade}" size="12" maxlength="12" />
+            <p:outputLabel value="Custo" for="txtCusto" />
+            <p:inputText id="txtCusto" value="#{controleConta.servico.custo}" size="12" maxlength="12"/>
+            <p:outputLabel value="Custo Real" for="txtCustoReal" />
+            <p:inputText id="txtCustoReal" value="#{controleConta.servico.custoReal}" size="12" maxlength="12" />
+          </p:panelGrid>
+        </h:form>
+        <ui:include src="/templates/ajaxstatus.xhtml"/>
+      </p:dialog>
+
+      <!-- Diálogo de cadastro e edição de ligações -->
+      <p:dialog widgetVar="dlgLigacao" header="Edição de Ligações da Conta" modal="true" resizable="false">
+        <h:form id="formLigacao">
+          <p:growl />
+          <p:panelGrid columns="2">
+            <f:facet name="footer">
+              <div align="center">
+                <p:commandButton id="adicionarLigacao" value="Salvar" icon="ui-icon-disk"
+                 actionListener="#{controleConta.salvarLigacao()}"
+                 update=":formEdicao:tab:listaLigacoes :formLigacao :formEdicao:tab:txtTotal"
+                 process="@form" oncomplete="if (!args.validationFailed){PF('dlgLigacao').hide();}"/>
+               </div>
+            </f:facet>
+            <p:outputLabel value="ID"/>
+            <p:inputText value="#{controleConta.ligacao.id}" size="10" readonly="true"/>
+            <p:outputLabel value="Data da Ligação" for="txtDataLigacao"/>
+            <p:calendar id="txtDataLigacao" value="#{controleConta.ligacao.data}" pattern="dd/MM/yyyy" mask="true" locale="pt_BR" navigator="true">
+              <f:converter converterId="converterCalendar" />
+            </p:calendar>
+            <p:outputLabel value="Duração (s)" for="txtDuracao"/>
+            <p:inputText id="txtDuracao" value="#{controleConta.ligacao.duracao}" size="12" maxlength="12" />
+            <p:outputLabel value="Número" for="txtNumero"/>
+            <p:inputText id="txtNumero" value="#{controleConta.ligacao.discado}" size="40" maxlength="40" />
+            <p:outputLabel value="Ramal" for="txtRamal"/>
+            <p:inputText id="txtRamal" value="#{controleConta.ligacao.ramal}" size="8" maxlength="8" />
+            <p:outputLabel value="Custo da Ligação" for="txtCustoLigacao" />
+            <p:inputText id="txtCustoLigacao" value="#{controleConta.ligacao.custo}" size="12" maxlength="12" />
+            <p:outputLabel value="Senha" for="txtSenha"/>
+            <p:inputText id="txtSenha" value="#{controleConta.ligacao.senha}" size="8" maxlength="8" />
+            <p:outputLabel value="Erro" for="txtErro"/>
+            <p:inputTextarea id="txtErro" value="#{controleConta.ligacao.erro}" maxlength="140" />
+            <p:outputLabel value="Tarifa" for="selectTarifa"/>
+            <p:selectOneMenu id="selectTarifa" value="#{controleConta.ligacao.tarifa}">
+              <f:converter converterId="converterTarifa" />
+              <f:selectItem itemLabel="Selecione um registro" noSelectionOption="true" />
+              <f:selectItems value="#{controleConta.daoTarifa.listaTodos}" var="t" itemLabel="#{t.operadora.nome} - #{t.descricao} - R$ #{t.custo}" />
+            </p:selectOneMenu>
+            <p:outputLabel value="Prefixo" for="selectPrefixo"/>
+            <p:selectOneMenu id="selectPrefixo" value="#{controleConta.ligacao.prefixo}">
+              <f:converter converterId="converterPrefixo" />
+              <f:selectItem itemLabel="Selecione um registro" noSelectionOption="true" />
+              <f:selectItems value="#{controleConta.daoPrefixo.listaTodos}" var="p" itemLabel="#{p.descricao} - #{p.prefixo}" />
+            </p:selectOneMenu>
+            <p:outputLabel value="Prefixo" for="selectPrefixo"/>
+            <p:selectOneMenu id="selectServico" value="#{controleConta.ligacao.servico}">
+              <f:converter converterId="converterServico" />
+              <f:selectItem itemLabel="Selecione um registro" noSelectionOption="true" />
+              <f:selectItems value="#{controleConta.daoServico.listaTodos}" var="s" itemLabel="#{s.descricao}" />
+            </p:selectOneMenu>
+            <p:outputLabel value="Senha" for="selectSenha"/>
+            <p:selectOneMenu id="selectSenha" value="#{controleConta.ligacao.senhaLigacao}">
+              <f:converter converterId="converterSenha" />
+              <f:selectItem itemLabel="Selecione um registro" noSelectionOption="true" />
+              <f:selectItems value="#{controleConta.daoSenha.listaTodos}" var="s" itemLabel="#{s.numero}" />
+            </p:selectOneMenu>
+
+            <p:outputLabel for="menu" value="Ramais" />
+            <p:selectCheckboxMenu id="menu" value="#{controleConta.ligacao.ramaisLigacao}" label="Ramais" filter="true" filterMatchMode="startsWith" panelStyle="width:250px" rendered="#{controleConta.ligacao!=null}">  
+              <f:attribute name="collectionType" value="java.util.ArrayList" />
+              <f:converter converterId="converterRamal" />
+              <f:selectItems value="#{controleConta.daoRamal.listaTodos}" var="r" itemLabel="#{r.numero} - #{r.descricao}" />
+            </p:selectCheckboxMenu>
+
+          </p:panelGrid>
+        </h:form>
+        <ui:include src="/templates/ajaxstatus.xhtml"/>
+      </p:dialog>
+
+    </ui:define>
+  </ui:composition>
+
+</html>

@@ -5,10 +5,14 @@
  */
 package br.edu.ifsul.br.controle;
 
+import br.edu.ifsul.dao.OperadoraDAO;
 import br.edu.ifsul.dao.TarifaDAO;
+import br.edu.ifsul.modelo.Operadora;
 import br.edu.ifsul.modelo.Tarifa;
 import br.edu.ifsul.util.Util;
+import br.edu.ifsul.util.UtilRelatorios;
 import java.io.Serializable;
+import java.util.HashMap;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
 
@@ -22,21 +26,27 @@ public class ControleTarifa implements Serializable {
     
     private TarifaDAO<Tarifa> dao;
     private Tarifa objeto;
+    private OperadoraDAO<Operadora> daoOperadora;
 
     public ControleTarifa() {
         dao = new TarifaDAO<>();
+        daoOperadora = new OperadoraDAO<>();
     }
     
-public String listar () {
+    public void relatorioTarifas() {
+        HashMap parametros = new HashMap();
+        UtilRelatorios.imprimeRelatorio("relatorioTarifasjavaBeans", parametros, dao.getListaTodos());
+    }
+    
+    public String listar () {
         return "/privado/tarifa/listar?faces-redirect=true";
     }
     
-    public String novo () {
+    public void novo () {
         objeto = new Tarifa();
-        return "formulario";
     }
     
-    public String salvar () {
+    public void salvar () {
         boolean persistiu;
         if (objeto.getId() == null) {
             persistiu = dao.persist(objeto);
@@ -47,25 +57,17 @@ public String listar () {
         
         if (persistiu) {
             Util.mensagemInformacao(dao.getMensagem());
-            return "listar";
         }
         else {
             Util.mensagemErro(dao.getMensagem());
-            return "formulario";
         }
     }
     
-    public String cancelar () {
-        return "listar";
-    }
-    
-    public String editar (Integer id) {
+    public void editar (Integer id) {
         try {
             objeto = dao.localizar(id);
-            return "formulario";
         } catch (Exception e) {
             Util.mensagemErro("Erro ao recuperar objeto: " + Util.getMensagemErro(e));
-            return "listar";
         }
     }
     
@@ -97,6 +99,14 @@ public String listar () {
 
     public void setObjeto(Tarifa objeto) {
         this.objeto = objeto;
+    }
+
+    public OperadoraDAO<Operadora> getDaoOperadora() {
+        return daoOperadora;
+    }
+
+    public void setDaoOperadora(OperadoraDAO<Operadora> daoOperadora) {
+        this.daoOperadora = daoOperadora;
     }
     
 }

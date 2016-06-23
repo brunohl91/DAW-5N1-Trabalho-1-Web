@@ -1,0 +1,96 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui">
+    
+    <ui:composition template="/templates/template.xhtml">
+        <ui:define name="titulo">Controle de Usuários</ui:define>
+        <ui:define name="conteudo">
+            <h:form id="formListagem">
+                <p:messages/>
+                <p:growl id="growl"/>
+                <p:commandButton value="Novo" actionListener="#{controleUsuario.novo()}"
+                                 oncomplete="PF('dlg').show();" update=":formEdicao"/>
+                <div align="center">
+                    <p:panelGrid columns="11">
+                        <p:outputLabel value="Ordem:"/>
+                        <p:selectOneMenu value="#{controleUsuario.dao.ordem}">
+                            <f:selectItem itemLabel="ID" itemValue="id"/>
+                            <f:selectItem itemLabel="Nome" itemValue="nome"/>
+                            <f:selectItem itemLabel="Login" itemValue="login"/>
+                            <p:ajax update="listagem growl"/>
+                        </p:selectOneMenu>
+                        <p:outputLabel value="Filtro"/>
+                        <p:inputText value="#{controleUsuario.dao.filter}">
+                            <p:ajax event="keyup" update="listagem growl"/>
+                        </p:inputText>
+                        <p:commandButton value="Filtrar" update="listagem growl"/>
+                        <p:outputLabel value="Máximo de Objetos:"/>
+                        <p:inputText value="#{controleUsuario.dao.maximoObjetos}">
+                            <p:ajax event="keyup" update="listagem"/>
+                        </p:inputText>
+                        <p:commandButton value="Primeiro" actionListener="#{controleUsuario.dao.primeiro()}" update="listagem" />
+                        <p:commandButton value="Anterior" actionListener="#{controleUsuario.dao.anterior()}" update="listagem" />
+                        <p:commandButton value="Proximo" actionListener="#{controleUsuario.dao.proximo()}" update="listagem" />
+                        <p:commandButton value="Último" actionListener="#{controleUsuario.dao.ultimo()}" update="listagem" />
+                    </p:panelGrid>
+                </div>
+                <p:dataTable value="#{controleUsuario.dao.listaObjetos}" var="obj" id="listagem">
+                    <f:facet name="footer">
+                        <p:outputLabel value="#{controleUsuario.dao.mensagemNavegacao}"/>
+                    </f:facet>
+                    <p:column headerText="ID">
+                        <h:outputText value="#{obj.id}"/>
+                    </p:column>
+                    <p:column headerText="Nome">
+                        <h:outputText value="#{obj.nome}"/>
+                    </p:column>
+                    <p:column headerText="Login">
+                        <h:outputText value="#{obj.login}"/>
+                    </p:column>
+                    <p:column headerText="Ações">
+                        <div align="center">
+                            <p:commandButton actionListener="#{controleUsuario.editar(obj.id)}" icon="ui-icon-pencil" id="btnEditar"
+                                           oncomplete="PF('dlg').show();" update=":formEdicao"/>
+                            <p:commandButton actionListener="#{controleUsuario.remover(obj.id)}" icon="ui-icon-trash" id="btnExcluir"
+                                           onclick="if(!confirm('Confirma a exclusão')) return false" update="@form" process="@form" />
+                            <p:tooltip for="btnEditar" value="Editar" />
+                            <p:tooltip for="btnExcluir" value="Excluir" />
+                        </div>
+                    </p:column>
+                </p:dataTable>
+            </h:form>
+        </ui:define>
+        <ui:define name="dialogos">
+            <p:dialog widgetVar="dlg" header="Edição" modal="true" resizable="false">
+                <h:form id="formEdicao">
+                    <p:growl/>
+                    <div align="center">
+                        <p:panelGrid columns="2">
+                            <f:facet name="footer">
+                                <p:commandButton value="Salvar" actionListener="#{controleUsuario.salvar()}" 
+                                                 oncomplete="if(!args.validationFailed){PF('dlg').hide();}" update=":formEdicao :formListagem"/>
+                            </f:facet>
+                            <p:outputLabel value="ID"/>
+                            <p:inputText value="#{controleUsuario.objeto.id}" readonly="true"/>
+                            <p:outputLabel value="Nome" for="txtNome"/>
+                            <p:inputText value="#{controleUsuario.objeto.nome}" id="txtNome" size="50" maxlength="50" placeholder="Obrigatório"/>
+                            <p:outputLabel value="Login" for="txtLogin"/>
+                            <p:inputText value="#{controleUsuario.objeto.login}" id="txtLogin" size="30" maxlength="30" placeholder="Obrigatório"/>
+                            <p:outputLabel value="Senha" for="txtSenha"/>
+                            <p:password id="txtSenha" value="#{controleUsuario.objeto.senha}" size="30" maxlength="30" feedback="true" redisplay="true" />
+                            <p:outputLabel value="E-mail" for="txtEmail"/>
+                            <p:inputText value="#{controleUsuario.objeto.email}" id="txtEmail" size="70" maxlength="70" placeholder="Obrigatório" type="email"/>
+                        </p:panelGrid>
+                    </div>
+                </h:form>
+                <ui:include src="/templates/ajaxstatus.xhtml"/>
+            </p:dialog>
+        </ui:define>
+    </ui:composition>
+    
+</html>
+
