@@ -6,13 +6,6 @@
   xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
   xmlns:p="http://primefaces.org/ui">
 
-  <!--
-    O que está faltando
-    - Listagem de ligações
-    - Manutenção de ligações
-    - Valor total da conta automático
-    -->
-
 <ui:composition template="/templates/template.xhtml">
 <ui:define name="titulo">Controle de Contas</ui:define>
 <ui:define name="conteudo">
@@ -27,6 +20,7 @@
         <p:selectOneMenu value="#{controleConta.dao.ordem}">
           <f:selectItem itemLabel="ID" itemValue="id"/>
           <f:selectItem itemLabel="Operadora" itemValue="operadora.nome"/>
+          <f:selectItem itemLabel="Descrição" itemValue="descricao"/>
           <p:ajax update="listagem growl"/>
         </p:selectOneMenu>
         <p:outputLabel value="Filtro"/>
@@ -115,11 +109,11 @@
                   </p:calendar>
                   <p:outputLabel value="Custo Total" for="txtTotal" />
                   <p:inputText id="txtTotal" value="#{controleConta.objeto.custoTotal}" size="12" maxlength="12" placeholder="Obrigatório" />
-                  <p:outputLabel value="Conta" for="selectOperadora"/>
+                  <p:outputLabel value="Operadora" for="selectOperadora"/>
                   <p:selectOneMenu id="selectOperadora" value="#{controleConta.objeto.operadora}">
                     <f:converter converterId="converterOperadora" />
                     <f:selectItem itemLabel="Selecione um registro" noSelectionOption="true" />
-                    <f:selectItems value="#{controleConta.daoOperadora.listaTodos}" var="u" itemLabel="#{u.nome}" />
+                    <f:selectItems value="#{controleConta.daoOperadora.listaTodos}" var="u" itemLabel="#{u.nome} - #{u.tipo}" />
                   </p:selectOneMenu>
                 </p:panelGrid>
               </div>
@@ -294,7 +288,7 @@
               <f:selectItem itemLabel="Selecione um registro" noSelectionOption="true" />
               <f:selectItems value="#{controleConta.daoPrefixo.listaTodos}" var="p" itemLabel="#{p.descricao} - #{p.prefixo}" />
             </p:selectOneMenu>
-            <p:outputLabel value="Prefixo" for="selectPrefixo"/>
+            <p:outputLabel value="Serviço" for="selectServico"/>
             <p:selectOneMenu id="selectServico" value="#{controleConta.ligacao.servico}">
               <f:converter converterId="converterServico" />
               <f:selectItem itemLabel="Selecione um registro" noSelectionOption="true" />

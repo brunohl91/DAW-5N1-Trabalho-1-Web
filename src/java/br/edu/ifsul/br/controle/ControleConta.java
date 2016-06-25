@@ -91,6 +91,7 @@ public class ControleConta implements Serializable {
     public void alterarServico (int index) {
         servico = objeto.getServicos().get(index);
         novoServico = false;
+        this.atualizaValorTotalConta();
     }
     
     public void salvarServico () {
@@ -116,6 +117,7 @@ public class ControleConta implements Serializable {
         ligacao = objeto.getLigacoes().get(index);
         ligacao.getRamaisLigacao().size();
         novaLigacao = false;
+        this.atualizaValorTotalConta();
     }
     
     public void salvarLigacao () {

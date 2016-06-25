@@ -21,10 +21,6 @@
                         <p:outputLabel value="Ordem:"/>
                         <p:selectOneMenu value="#{controleTarifa.dao.ordem}">
                             <f:selectItem itemLabel="ID" itemValue="id"/>
-                            <f:selectItem itemLabel="Início" itemValue="inicioVigencia"/>
-                            <f:selectItem itemLabel="Fim" itemValue="fimVigencia"/>
-                            <f:selectItem itemLabel="Custo" itemValue="custo"/>
-                            <f:selectItem itemLabel="Regra" itemValue="regraTarifacao"/>
                             <f:selectItem itemLabel="Operadora" itemValue="operadora.nome"/>
                             <p:ajax update="listagem growl"/>
                         </p:selectOneMenu>
